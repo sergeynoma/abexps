@@ -1,0 +1,2534 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A/B Калькулятор</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafaf7;
+  --bg-elevated: #ffffff;
+  --ink: #0a0a0a;
+  --ink-muted: #6b6b6b;
+  --ink-subtle: #a8a8a8;
+  --line: #e5e5e0;
+  --line-strong: #1a1a1a;
+  --accent: #c8442a;
+  --good: #1f6e3a;
+  --warn-bg: #fdf3ee;
+  --good-bg: #eef5ef;
+  --input-bg: #fffef9;
+  --input-focus: #fffae0;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 56px 32px 96px;
+}
+
+/* HEADER */
+header {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 24px;
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+h1 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: 38px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variation-settings: "opsz" 144;
+}
+
+h1 em {
+  font-style: italic;
+  font-weight: 300;
+  color: var(--ink-muted);
+}
+
+.tagline {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* TABS */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 40px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+
+.tab {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 14px 20px 14px 0;
+  margin-right: 28px;
+  background: none;
+  border: none;
+  color: var(--ink-subtle);
+  cursor: pointer;
+  position: relative;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.tab:hover { color: var(--ink); }
+
+.tab.active {
+  color: var(--ink);
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 28px;
+  height: 2px;
+  background: var(--ink);
+}
+
+.tab-num {
+  color: var(--ink-subtle);
+  margin-right: 8px;
+  font-weight: 500;
+}
+.tab.active .tab-num { color: var(--ink); }
+
+/* PANEL */
+.panel { display: none; }
+.panel.active { display: block; animation: fadeIn 0.25s ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.panel-intro {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+  max-width: 640px;
+}
+
+.panel-sub {
+  color: var(--ink-muted);
+  font-size: 14px;
+  margin-bottom: 36px;
+  max-width: 640px;
+}
+
+/* FORM */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 32px;
+  margin-bottom: 32px;
+}
+
+.form-grid.full { grid-template-columns: 1fr; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+
+.field label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.field .hint {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-subtle);
+  font-weight: 400;
+}
+
+.field input, .field select {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  color: var(--ink);
+  border-radius: 0;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.field input:focus, .field select:focus {
+  border-color: var(--line-strong);
+  background: var(--input-focus);
+}
+
+.field select { cursor: pointer; }
+
+.radio-group {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--line);
+}
+
+.radio-group label {
+  flex: 1;
+  text-align: center;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  background: var(--input-bg);
+  transition: all 0.15s;
+  border-right: 1px solid var(--line);
+  display: block;
+}
+
+.radio-group label:last-child { border-right: none; }
+.radio-group input { display: none; }
+.radio-group label:hover { color: var(--ink); }
+.radio-group input:checked + span,
+.radio-group label:has(input:checked) {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+/* RESULT */
+.result {
+  border-top: 1px solid var(--line-strong);
+  padding-top: 32px;
+  margin-top: 8px;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px 40px;
+}
+
+.result-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.result-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.result-value {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-variation-settings: "opsz" 144;
+}
+
+.result-value.mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.result-value .unit {
+  font-size: 14px;
+  color: var(--ink-muted);
+  font-family: 'Inter', sans-serif;
+  margin-left: 4px;
+  font-style: normal;
+  font-variation-settings: normal;
+}
+
+.result-note {
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin-top: 24px;
+  padding: 16px 20px;
+  background: var(--bg-elevated);
+  border-left: 2px solid var(--line-strong);
+  line-height: 1.55;
+}
+
+.result-note.warn {
+  background: var(--warn-bg);
+  border-left-color: var(--accent);
+}
+
+.result-note.good {
+  background: var(--good-bg);
+  border-left-color: var(--good);
+}
+
+.result-note strong { font-weight: 600; color: var(--ink); }
+
+/* PRESETS */
+.presets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px dashed var(--line);
+}
+
+.preset-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--ink-muted);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.preset-btn:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.preset-btn.active {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+.presets-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  align-self: center;
+  margin-right: 4px;
+}
+
+/* SECONDARY RESULT (для C1-риска) */
+.secondary-result {
+  margin-top: 24px;
+  padding: 16px 20px;
+  background: var(--bg-elevated);
+  border-left: 2px solid var(--ink);
+  display: none;
+}
+.secondary-result.visible { display: block; }
+.secondary-result .sec-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+}
+.secondary-result .sec-value {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  font-variation-settings: "opsz" 144;
+  margin-bottom: 8px;
+}
+.secondary-result .sec-value .sec-unit {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin-left: 6px;
+}
+.secondary-result .sec-note {
+  font-size: 13px;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+.secondary-result .sec-inline-input {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.secondary-result .sec-inline-input label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.secondary-result .sec-inline-input input {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  width: 90px;
+  outline: none;
+}
+.secondary-result .sec-inline-input input:focus {
+  border-color: var(--line-strong);
+  background: var(--input-focus);
+}
+
+/* MONITOR */
+.verdict-card {
+  margin: 32px 0 40px;
+  padding: 32px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-elevated);
+  position: relative;
+}
+.verdict-card .verdict-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 12px;
+}
+.verdict-card .verdict-main {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 44px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variation-settings: "opsz" 144;
+  margin-bottom: 12px;
+}
+.verdict-card .verdict-sub {
+  font-size: 14px;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+.verdict-card.green { border-color: var(--good); background: var(--good-bg); }
+.verdict-card.green .verdict-main { color: var(--good); }
+.verdict-card.yellow { border-color: #b8860b; background: #fef9e7; }
+.verdict-card.yellow .verdict-main { color: #8b6500; }
+.verdict-card.red { border-color: var(--accent); background: var(--warn-bg); }
+.verdict-card.red .verdict-main { color: var(--accent); }
+.verdict-card.gray .verdict-main { color: var(--ink-subtle); }
+
+.progress-bar {
+  height: 6px;
+  background: var(--line);
+  margin-top: 8px;
+  margin-bottom: 6px;
+  position: relative;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: var(--ink);
+  transition: width 0.3s ease;
+}
+.progress-bar-fill.complete { background: var(--good); }
+
+.monitor-section {
+  margin: 32px 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.monitor-section-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 16px;
+}
+.monitor-section-title .status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  margin-left: 12px;
+  padding: 2px 8px;
+  letter-spacing: 0.04em;
+}
+.monitor-section-title .status.ok { color: var(--good); border: 1px solid var(--good); }
+.monitor-section-title .status.warn { color: var(--accent); border: 1px solid var(--accent); }
+.monitor-section-title .status.pending { color: var(--ink-subtle); border: 1px solid var(--line); }
+
+.monitor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 24px;
+  margin-bottom: 16px;
+}
+.monitor-stat-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 4px;
+}
+.monitor-stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 500;
+}
+.monitor-hint {
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+.monitor-checklist {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--ink-muted);
+  line-height: 1.6;
+}
+.monitor-checklist .ck-block { margin-bottom: 16px; }
+.monitor-checklist .ck-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.monitor-checklist .ck-title.green { color: var(--good); }
+.monitor-checklist .ck-title.red { color: var(--accent); }
+.monitor-checklist .ck-title.yellow { color: #8b6500; }
+
+/* GUIDE */
+.guide {
+  max-width: 660px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink);
+}
+.guide h3 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  margin: 40px 0 12px;
+  font-variation-settings: "opsz" 144;
+}
+.guide h3:first-child { margin-top: 0; }
+.guide h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  font-weight: 500;
+  margin: 24px 0 8px;
+}
+.guide p { margin-bottom: 14px; }
+.guide ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 14px 0;
+}
+.guide ul li {
+  padding-left: 20px;
+  position: relative;
+  margin-bottom: 8px;
+}
+.guide ul li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--ink-subtle);
+}
+.guide strong {
+  font-weight: 600;
+}
+.guide code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  background: var(--bg-elevated);
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+}
+.guide .callout {
+  border-left: 2px solid var(--ink-strong, var(--ink));
+  background: var(--bg-elevated);
+  padding: 16px 20px;
+  margin: 16px 0;
+  font-size: 14px;
+}
+.guide .callout.warn {
+  border-left-color: var(--accent);
+  background: var(--warn-bg);
+}
+.guide .callout strong { color: var(--ink); }
+
+/* SHARE */
+.share-bar {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.share-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 10px 16px;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.share-btn:hover { opacity: 0.85; }
+.share-btn.ghost {
+  background: transparent;
+  color: var(--ink-muted);
+  border: 1px solid var(--line);
+}
+.share-btn.ghost:hover { color: var(--ink); border-color: var(--line-strong); }
+
+.share-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--good);
+  letter-spacing: 0.04em;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.share-status.visible { opacity: 1; }
+
+/* FOOTER */
+footer {
+  margin-top: 80px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-subtle);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+footer a {
+  color: var(--ink-muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+}
+footer a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+@media (max-width: 640px) {
+  .container { padding: 32px 20px 64px; }
+  h1 { font-size: 28px; }
+  .form-grid { grid-template-columns: 1fr; gap: 16px; }
+  .result-value { font-size: 26px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div>
+    <h1>A/B <em>калькулятор</em></h1>
+  </div>
+  <div class="tagline">мощность · MDE · post-hoc · srm</div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-panel="sample-size"><span class="tab-num">01</span>Размер выборки</button>
+  <button class="tab" data-panel="mde"><span class="tab-num">02</span>MDE</button>
+  <button class="tab" data-panel="posthoc"><span class="tab-num">03</span>Post-hoc</button>
+  <button class="tab" data-panel="srm"><span class="tab-num">04</span>SRM</button>
+  <button class="tab" data-panel="monitor"><span class="tab-num">05</span>Монитор</button>
+  <button class="tab" data-panel="guide"><span class="tab-num">06</span>Гайд</button>
+</nav>
+
+<main>
+  <section class="panel active" id="panel-sample-size">
+    <p class="panel-intro">Сколько нужно юзеров на вариант, чтобы поймать заданный эффект.</p>
+    <p class="panel-sub" id="ss_sub">Двусторонний z-тест. Возвращает размер на одну группу — итого нужно ×2 (или ×k для A/B/n).</p>
+
+    <div class="presets">
+      <span class="presets-label">пресет:</span>
+      <button class="preset-btn" data-preset="none">общий</button>
+      <button class="preset-btn" data-preset="paywall_c0">Paywall (C0)</button>
+      <button class="preset-btn" data-preset="paywall_c1risk">Paywall с риском на C1</button>
+      <button class="preset-btn" data-preset="arppu">ARPPU (цена/тариф)</button>
+    </div>
+
+    <!-- Тип метрики управляется только через пресеты. По умолчанию — конверсия. -->
+    <input type="hidden" id="ss_metric" value="conversion">
+
+    <!-- КОНВЕРСИЯ -->
+    <div class="form-grid" id="ss-block-conversion">
+      <div class="field">
+        <label>Базовая конверсия p₁ <span class="hint">в долях, напр. 0.05</span></label>
+        <input type="number" id="ss_p1" step="0.001" min="0" max="1" value="0.05">
+      </div>
+      <div class="field">
+        <label>MDE <span class="hint">относительный, напр. 0.10 = +10%</span></label>
+        <input type="number" id="ss_mde_rel" step="0.01" min="0" value="0.10">
+      </div>
+    </div>
+
+    <!-- НЕПРЕРЫВНАЯ -->
+    <div class="form-grid" id="ss-block-continuous" style="display:none">
+      <div class="field">
+        <label>Среднее μ <span class="hint">текущее значение метрики</span></label>
+        <input type="number" id="ss_mean" step="any" value="500">
+      </div>
+      <div class="field">
+        <label>Std σ <span class="hint">стандартное отклонение</span></label>
+        <input type="number" id="ss_sd" step="any" min="0" value="800">
+      </div>
+      <div class="field">
+        <label>MDE <span class="hint">относительный, напр. 0.05 = +5%</span></label>
+        <input type="number" id="ss_mde_rel_c" step="0.001" min="0" value="0.05">
+      </div>
+    </div>
+
+    <!-- RATIO -->
+    <!-- Общие параметры -->
+    <div class="form-grid">
+      <div class="field">
+        <label>Уровень значимости α <span class="hint">обычно 0.05</span></label>
+        <input type="number" id="ss_alpha" step="0.01" min="0.001" max="0.5" value="0.05">
+      </div>
+      <div class="field">
+        <label>Мощность 1−β <span class="hint">обычно 0.8</span></label>
+        <input type="number" id="ss_power" step="0.01" min="0.5" max="0.999" value="0.8">
+      </div>
+      <div class="field">
+        <label>Дневной трафик <span class="hint">опционально, для расчёта длительности</span></label>
+        <input type="number" id="ss_daily" step="any" min="0" value="" placeholder="напр. 5000">
+      </div>
+      <input type="hidden" id="ss_sides" value="2">
+    </div>
+
+    <div class="result">
+      <div class="result-grid">
+        <div class="result-item">
+          <span class="result-label">На одну группу</span>
+          <span class="result-value mono" id="ss_out_per_group">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Всего (A+B)</span>
+          <span class="result-value mono" id="ss_out_total">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Длительность</span>
+          <span class="result-value mono" id="ss_out_days">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Абсолютный MDE</span>
+          <span class="result-value mono" id="ss_out_abs_mde">—</span>
+        </div>
+      </div>
+      <div class="result-note" id="ss_note">Введи параметры — посчитаю.</div>
+
+      <div class="secondary-result" id="ss_c1_risk">
+        <div class="sec-label">↓ Что будет с C1 на той же выборке</div>
+        <div class="sec-value" id="ss_c1_verdict">—</div>
+        <div class="sec-note" id="ss_c1_note"></div>
+        <div class="sec-inline-input">
+          <label>Текущий C1, %:</label>
+          <input type="number" id="ss_c1_base" step="1" min="1" max="99" value="60">
+          <label style="margin-left:16px">Ожидаемый эффект на C1, %:</label>
+          <input type="number" id="ss_c1_expected" step="0.5" value="-3">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-mde">
+    <p class="panel-intro">Какой минимальный эффект ты сможешь поймать на имеющейся выборке.</p>
+    <p class="panel-sub">Обратная задача: фиксируем n, α, power — получаем MDE. Полезно когда трафик ограничен и нужно понять, имеет ли смысл вообще запускать тест.</p>
+
+    <input type="hidden" id="md_metric" value="conversion">
+
+    <!-- Размер выборки — общий блок -->
+    <div class="form-grid">
+      <div class="field">
+        <label>n на группу <span class="hint">размер одной группы</span></label>
+        <input type="number" id="md_n" step="1" min="10" value="50000">
+      </div>
+      <div class="field">
+        <label>Уровень значимости α</label>
+        <input type="number" id="md_alpha" step="0.01" min="0.001" max="0.5" value="0.05">
+      </div>
+      <div class="field">
+        <label>Мощность 1−β</label>
+        <input type="number" id="md_power" step="0.01" min="0.5" max="0.999" value="0.8">
+      </div>
+      <input type="hidden" id="md_sides" value="2">
+    </div>
+
+    <!-- КОНВЕРСИЯ -->
+    <div class="form-grid" id="md-block-conversion">
+      <div class="field">
+        <label>Базовая конверсия p₁</label>
+        <input type="number" id="md_p1" step="0.001" min="0" max="1" value="0.05">
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="result-grid">
+        <div class="result-item">
+          <span class="result-label">MDE относительный</span>
+          <span class="result-value mono" id="md_out_rel">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">MDE абсолютный</span>
+          <span class="result-value mono" id="md_out_abs">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Ожидаемое значение</span>
+          <span class="result-value mono" id="md_out_target">—</span>
+        </div>
+      </div>
+      <div class="result-note" id="md_note">Введи параметры — посчитаю.</div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-posthoc">
+    <p class="panel-intro">Тест уже прошёл — что в нём показано.</p>
+    <p class="panel-sub">Двухвыборочный z-тест. Для конверсий — пулинговая дисперсия в z-статистике, непулинговая в ДИ (Wald). ДИ для lift — через лог-преобразование (правильный дельта-метод, не симметричный коридор).</p>
+
+    <div class="form-grid full" style="margin-bottom:24px">
+      <div class="field">
+        <label>Тип метрики</label>
+        <div class="radio-group">
+          <label><input type="radio" name="ph_metric" value="conversion" checked><span>Конверсия</span></label>
+          <label><input type="radio" name="ph_metric" value="continuous"><span>Непрерывная (среднее)</span></label>
+        </div>
+        <input type="hidden" id="ph_metric" value="conversion">
+      </div>
+    </div>
+
+    <!-- КОНВЕРСИЯ -->
+    <div class="form-grid" id="ph-block-conversion">
+      <div class="field">
+        <label>Контроль: n₁ <span class="hint">размер группы</span></label>
+        <input type="number" id="ph_n1" step="1" min="1" value="50000">
+      </div>
+      <div class="field">
+        <label>Контроль: успехов x₁ <span class="hint">число конверсий</span></label>
+        <input type="number" id="ph_x1" step="1" min="0" value="2500">
+      </div>
+      <div class="field">
+        <label>Тритмент: n₂</label>
+        <input type="number" id="ph_n2" step="1" min="1" value="50000">
+      </div>
+      <div class="field">
+        <label>Тритмент: успехов x₂</label>
+        <input type="number" id="ph_x2" step="1" min="0" value="2700">
+      </div>
+    </div>
+
+    <!-- НЕПРЕРЫВНАЯ -->
+    <div class="form-grid" id="ph-block-continuous" style="display:none">
+      <div class="field">
+        <label>Контроль: n₁</label>
+        <input type="number" id="ph_cn1" step="1" min="2" value="10000">
+      </div>
+      <div class="field">
+        <label>Контроль: среднее μ₁</label>
+        <input type="number" id="ph_m1" step="any" value="450">
+      </div>
+      <div class="field">
+        <label>Контроль: σ₁ <span class="hint">выборочное стд. откл.</span></label>
+        <input type="number" id="ph_s1" step="any" min="0" value="800">
+      </div>
+      <div class="field">
+        <label>Тритмент: n₂</label>
+        <input type="number" id="ph_cn2" step="1" min="2" value="10000">
+      </div>
+      <div class="field">
+        <label>Тритмент: среднее μ₂</label>
+        <input type="number" id="ph_m2" step="any" value="465">
+      </div>
+      <div class="field">
+        <label>Тритмент: σ₂</label>
+        <input type="number" id="ph_s2" step="any" min="0" value="820">
+      </div>
+    </div>
+
+    <!-- Общие -->
+    <div class="form-grid">
+      <div class="field">
+        <label>α <span class="hint">для ДИ и порога значимости</span></label>
+        <input type="number" id="ph_alpha" step="0.01" min="0.001" max="0.5" value="0.05">
+      </div>
+      <input type="hidden" id="ph_sides" value="2">
+    </div>
+
+    <div class="result">
+      <div class="result-grid">
+        <div class="result-item">
+          <span class="result-label">p-value</span>
+          <span class="result-value mono" id="ph_out_p">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">z-статистика</span>
+          <span class="result-value mono" id="ph_out_z">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Абсолютный эффект</span>
+          <span class="result-value mono" id="ph_out_diff">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Lift (отн.)</span>
+          <span class="result-value mono" id="ph_out_lift">—</span>
+        </div>
+      </div>
+      <div class="result-grid" style="margin-top:24px">
+        <div class="result-item">
+          <span class="result-label">ДИ для абс. эффекта</span>
+          <span class="result-value mono" id="ph_out_ci_abs" style="font-size:18px">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">ДИ для lift</span>
+          <span class="result-value mono" id="ph_out_ci_lift" style="font-size:18px">—</span>
+        </div>
+      </div>
+      <div class="result-note" id="ph_note">Введи параметры — посчитаю.</div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-srm">
+    <p class="panel-intro">Сплит-система отдала юзеров поровну? Sample Ratio Mismatch.</p>
+    <p class="panel-sub">Chi-square тест: насколько фактическое распределение отличается от ожидаемого. Если p &lt; 0.001 — система сплита кривая (баг трекинга, бот-трафик, проблема с куками). Тест выкидывать, разбираться с причиной.</p>
+
+    <div class="form-grid full" style="margin-bottom:8px">
+      <div class="field">
+        <label>Число вариантов <span class="hint">2 для A/B, 3+ для A/B/n</span></label>
+        <input type="number" id="srm_k" step="1" min="2" max="10" value="2">
+      </div>
+    </div>
+
+    <div id="srm_rows_container" style="margin-bottom:24px"></div>
+
+    <div class="result">
+      <div class="result-grid">
+        <div class="result-item">
+          <span class="result-label">Всего юзеров</span>
+          <span class="result-value mono" id="srm_out_total">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">χ²</span>
+          <span class="result-value mono" id="srm_out_chi">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">p-value</span>
+          <span class="result-value mono" id="srm_out_p">—</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Вердикт</span>
+          <span class="result-value mono" id="srm_out_verdict" style="font-size:18px">—</span>
+        </div>
+      </div>
+      <div class="result-note" id="srm_note">Заполни ожидаемые и фактические — посчитаю.</div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-monitor">
+    <p class="panel-intro">Тест бежит — посмотрим, что в нём.</p>
+    <p class="panel-sub">Вводи текущие фактические цифры. Сверху — главный вердикт: пора смотреть результаты или ещё рано. Ниже — детали по SRM, C0 и C1. Параметры (плановое n, базовый C0) можно подтянуть из вкладки Размер выборки.</p>
+
+    <!-- ВЕРДИКТ -->
+    <div class="verdict-card gray" id="mon_verdict_card">
+      <div class="verdict-label">Главный вердикт</div>
+      <div class="verdict-main" id="mon_verdict">—</div>
+      <div class="verdict-sub" id="mon_verdict_sub">Введи текущие цифры по эксперименту ниже.</div>
+    </div>
+
+    <!-- ВХОДНЫЕ ПАРАМЕТРЫ ПЛАНА -->
+    <div class="monitor-section">
+      <div class="monitor-section-title">План эксперимента
+        <button id="mon_pull_from_ss" class="share-btn ghost" style="margin-left:12px;font-size:10px;padding:4px 10px">↘ из размера выборки</button>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Плановое n на группу <span class="hint">из расчёта Sample Size</span></label>
+          <input type="number" id="mon_plan_n" step="1" min="1" value="31234">
+        </div>
+        <div class="field">
+          <label>Базовый C0, % <span class="hint">историческая конверсия в первую оплату</span></label>
+          <input type="number" id="mon_base_c0" step="0.1" min="0.1" max="99" value="5">
+        </div>
+        <div class="field">
+          <label>Базовый C1, % <span class="hint">опционально — если хочешь видеть оценку и по C1</span></label>
+          <input type="number" id="mon_base_c1" step="1" min="0" max="99" value="60">
+        </div>
+        <div class="field">
+          <label>α <span class="hint">для p-value и ДИ</span></label>
+          <input type="number" id="mon_alpha" step="0.01" min="0.001" max="0.5" value="0.05">
+        </div>
+      </div>
+    </div>
+
+    <!-- ФАКТИЧЕСКИЕ ДАННЫЕ -->
+    <div class="monitor-section">
+      <div class="monitor-section-title">Фактические данные сейчас</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Контроль: набрано юзеров</label>
+          <input type="number" id="mon_n1" step="1" min="0" value="">
+        </div>
+        <div class="field">
+          <label>Тритмент: набрано юзеров</label>
+          <input type="number" id="mon_n2" step="1" min="0" value="">
+        </div>
+        <div class="field">
+          <label>Контроль: оплат C0</label>
+          <input type="number" id="mon_x1" step="1" min="0" value="">
+        </div>
+        <div class="field">
+          <label>Тритмент: оплат C0</label>
+          <input type="number" id="mon_x2" step="1" min="0" value="">
+        </div>
+        <div class="field">
+          <label>Контроль: продлений C1 <span class="hint">опционально</span></label>
+          <input type="number" id="mon_y1" step="1" min="0" value="">
+        </div>
+        <div class="field">
+          <label>Тритмент: продлений C1 <span class="hint">опционально</span></label>
+          <input type="number" id="mon_y2" step="1" min="0" value="">
+        </div>
+      </div>
+    </div>
+
+    <!-- ПРОГРЕСС ВЫБОРКИ -->
+    <div class="monitor-section">
+      <div class="monitor-section-title">Прогресс набора выборки <span class="status pending" id="mon_progress_status">—</span></div>
+      <div class="monitor-grid">
+        <div>
+          <div class="monitor-stat-label">Контроль</div>
+          <div class="monitor-stat-value" id="mon_progress_n1">—</div>
+          <div class="progress-bar"><div class="progress-bar-fill" id="mon_progress_bar1" style="width:0"></div></div>
+          <div class="monitor-stat-label" id="mon_progress_pct1">—</div>
+        </div>
+        <div>
+          <div class="monitor-stat-label">Тритмент</div>
+          <div class="monitor-stat-value" id="mon_progress_n2">—</div>
+          <div class="progress-bar"><div class="progress-bar-fill" id="mon_progress_bar2" style="width:0"></div></div>
+          <div class="monitor-stat-label" id="mon_progress_pct2">—</div>
+        </div>
+      </div>
+      <div class="monitor-hint" id="mon_progress_hint"></div>
+    </div>
+
+    <!-- SRM -->
+    <div class="monitor-section">
+      <div class="monitor-section-title">Sample Ratio Mismatch <span class="status pending" id="mon_srm_status">—</span></div>
+      <div class="monitor-grid">
+        <div>
+          <div class="monitor-stat-label">χ²</div>
+          <div class="monitor-stat-value" id="mon_srm_chi">—</div>
+        </div>
+        <div>
+          <div class="monitor-stat-label">p-value</div>
+          <div class="monitor-stat-value" id="mon_srm_p">—</div>
+        </div>
+        <div>
+          <div class="monitor-stat-label">Распределение</div>
+          <div class="monitor-stat-value" id="mon_srm_split">—</div>
+        </div>
+      </div>
+      <div class="monitor-hint" id="mon_srm_hint"></div>
+    </div>
+
+    <!-- C0 -->
+    <div class="monitor-section">
+      <div class="monitor-section-title">Эффект на C0 <span class="status pending" id="mon_c0_status">—</span></div>
+      <div class="monitor-grid">
+        <div>
+          <div class="monitor-stat-label">C0 в контроле</div>
+          <div class="monitor-stat-value" id="mon_c0_p1">—</div>
+        </div>
+        <div>
+          <div class="monitor-stat-label">C0 в тритменте</div>
+          <div class="monitor-stat-value" id="mon_c0_p2">—</div>
+        </div>
+        <div>
+          <div class="monitor-stat-label">Lift</div>
+          <div class="monitor-stat-value" id="mon_c0_lift">—</div>
+        </div>
+        <div>
+          <div class="monitor-stat-label">p-value</div>
+          <div class="monitor-stat-value" id="mon_c0_p">—</div>
+        </div>
+      </div>
+      <div class="monitor-hint" id="mon_c0_hint"></div>
+    </div>
+
+    <!-- C1 -->
+    <div class="monitor-section">
+      <div class="monitor-section-title">Эффект на C1 <span class="status pending" id="mon_c1_status">—</span></div>
+      <div class="monitor-grid">
+        <div>
+          <div class="monitor-stat-label">C1 в контроле</div>
+          <div class="monitor-stat-value" id="mon_c1_p1">—</div>
+        </div>
+        <div>
+          <div class="monitor-stat-label">C1 в тритменте</div>
+          <div class="monitor-stat-value" id="mon_c1_p2">—</div>
+        </div>
+        <div>
+          <div class="monitor-stat-label">Lift</div>
+          <div class="monitor-stat-value" id="mon_c1_lift">—</div>
+        </div>
+        <div>
+          <div class="monitor-stat-label">p-value</div>
+          <div class="monitor-stat-value" id="mon_c1_p">—</div>
+        </div>
+      </div>
+      <div class="monitor-hint" id="mon_c1_hint"></div>
+    </div>
+
+    <!-- ЧЕК-ЛИСТ -->
+    <div class="monitor-checklist">
+      <div class="ck-block">
+        <div class="ck-title green">→ Можно смотреть результат</div>
+        Выборка набрана на 100%, лаг наблюдения по C1 прошёл (триал + первый период), SRM ок, эксперимент бежал минимум 7–14 дней (учли недельные циклы).
+      </div>
+      <div class="ck-block">
+        <div class="ck-title red">→ Срочно остановить</div>
+        SRM (p &lt; 0.001) — баг сплита; сломалась трекинг-инфраструктура; внешнее событие искажает данные (праздники, инцидент).
+      </div>
+      <div class="ck-block">
+        <div class="ck-title yellow">→ НЕ катить раньше времени</div>
+        «p &lt; 0.05 на третий день» — это peeking, FPR раздут до 20–30%; «не значимо на C0, но значимо на проксе» — катить нельзя, прокса не была primary; «менеджмент торопит» — это не статистика.
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-guide">
+    <p class="panel-intro">Как пользоваться калькулятором, когда у тебя подписочная воронка C0 → C1.</p>
+    <p class="panel-sub">Без формул и теории. Только то, что нужно держать в голове, чтобы не наступить на грабли.</p>
+
+    <div class="guide">
+
+      <h3>Что такое C0 и C1</h3>
+      <p><strong>C0</strong> — конверсия в первую оплату. Юзер пришёл, посмотрел paywall, оплатил (или ушёл триал, оплатил после триала). Базовый параметр воронки — обычно 1–10% для подписочных продуктов.</p>
+      <p><strong>C1</strong> — конверсия в продление. Среди тех, кто <em>уже оплатил первый раз</em>, какая доля продлевает подписку на следующий период. Тут «знаменатель» уже сильно меньше — только платящие. Типичные значения 40–80% для месячных подписок.</p>
+      <p>Для подписочной экономики обе метрики важны. C0 — сколько денег зашло в первый раз. C1 — насколько эти деньги «прилипают». Обе нужны, чтобы посчитать LTV.</p>
+
+      <h3>Главная ловушка: эксперимент влияет на обе метрики</h3>
+      <p>Допустим, ты тестируешь новый paywall с более жёсткой формулировкой. Ожидание: <strong>C0 вырастет</strong> (давление работает). Но есть риск, что <strong>C1 просядет</strong> — потому что в подписку зашли менее мотивированные юзеры, которые потом не продлят.</p>
+      <p>Это классический сценарий. И вот тут начинается интересное:</p>
+      <ul>
+        <li>Если смотреть только на C0 — выкатишь, увидишь рост, заявишь победу.</li>
+        <li>Через месяц увидишь, что C1 проседает, общий LTV не вырос или даже упал.</li>
+        <li>Откатишь обратно, потеряешь время и доверие.</li>
+      </ul>
+      <p>Поэтому <strong>дизайнить тест надо сразу с расчётом на обе метрики</strong>. Для этого в Размере выборки есть пресет «Paywall с риском на C1» — он показывает, какой эффект на C1 ты вообще способен увидеть на той выборке, что собираешь под C0.</p>
+
+      <div class="callout warn">
+        <strong>Селекшн биас.</strong> Если эксперимент сдвигает C0 (а в твоём дизайне это и есть цель) — состав группы, на которой считается C1, в контроле и тритменте <em>разный</em>. В тритменте оплатили условно «более слабые» юзеры, в контроле — «более сильные». Сравнивать C1 в лоб некорректно, ты сравниваешь разные популяции. Это нельзя починить чисто методологически на этапе анализа — это нужно учитывать на дизайне (например, смотреть метрику, рассчитанную <em>на всю выборку</em>, а не только на платящих).
+      </div>
+
+      <h3>Что важно знать про лаг</h3>
+      <p>C0 ты видишь в момент оплаты. C1 — только когда наступает момент продления, обычно через триал (7–14 дней) + первый период подписки (30 дней). Итого — <strong>около 5–6 недель после старта эксперимента</strong>, минимум. Это влияет на длительность теста: даже если набрал нужную выборку за неделю, ждать всё равно придётся месяц-полтора, чтобы получить полный сигнал по C1.</p>
+
+      <h3>Когда какую вкладку открывать</h3>
+      <h4>Размер выборки</h4>
+      <p>Перед запуском теста. Считаешь, сколько юзеров на группу нужно собрать, чтобы поймать заданный эффект. Для подписочного paywall — пресет «Paywall (C0)». Если есть подозрение на эффект на C1 — пресет «Paywall с риском на C1».</p>
+      <h4>MDE</h4>
+      <p>Когда выборка ограничена. Например: «у меня в эксперименте 50 000 юзеров на группу, какой минимальный эффект на C0 я смогу поймать?» Если получилось 8% rel, а ожидаемый эффект твоей гипотезы 3% — тест дизайнить смысла нет, не увидишь.</p>
+      <h4>Post-hoc</h4>
+      <p>После теста. Вбиваешь n и число конверсий в обеих группах — получаешь p-value, доверительный интервал и lift. Главное помнить: «не значимо» не равно «эффекта нет». Это значит «выборки не хватило, чтобы быть уверенным». Смотри ширину ДИ — она и говорит, насколько уверенно мы можем что-то утверждать.</p>
+      <h4>SRM</h4>
+      <p>Sample Ratio Mismatch. Проверка перед анализом — а корректно ли система поделила юзеров между группами? Если ожидаешь 50/50, а получил 51/49 — это случайность или баг? Если p &lt; 0.001 — баг сплита, тест выкидывать, искать причину (бот-трафик, проблема с куками, кривой SDK).</p>
+
+      <h3>Типичные ошибки</h3>
+      <h4>Подсматривать в результаты до конца теста</h4>
+      <p>Самая популярная. Каждый день смотришь на p-value, видишь ≤0.05, останавливаешь. Вероятность ложного срабатывания при ежедневном подглядывании — не 5%, а сильно больше (зависит от длительности, до 20–30%). Дисциплина: сначала рассчитал выборку → запустил → дождался → один раз посмотрел.</p>
+      <h4>Тестировать на C0, выкатывать без C1</h4>
+      <p>Описано выше. Если есть подозрение на эффект на C1 — закладывай его в дизайн или хотя бы оцени на пресете «Paywall с риском на C1», что́ ты способен увидеть.</p>
+      <h4>Резать выборку после старта</h4>
+      <p>«Ой, давайте посмотрим только на новых юзеров». Если фильтрация коррелирует с экспериментом (а она почти всегда коррелирует через C0) — получаешь selection bias. Сегментируй на стороне планирования, а не задним числом.</p>
+      <h4>Игнорировать SRM</h4>
+      <p>Если сплит-система отдала юзеров криво — все остальные расчёты бессмысленны. Проверка SRM занимает 30 секунд, делай её первой при разборе теста.</p>
+
+      <h3>Эвристики калибровки</h3>
+      <ul>
+        <li><strong>Мощность 80%, α=0.05</strong> — индустриальный стандарт. Если очень дорого ошибиться — повышай мощность до 90%.</li>
+        <li><strong>MDE 3–10% rel</strong> — типичный диапазон для тестов на C0 в зрелых продуктах. Меньше 3% — обычно нужны очень большие выборки. Больше 10% — гипотеза «слишком оптимистичная», стоит проверить.</li>
+        <li><strong>Не значимо</strong> ≠ <strong>нет эффекта.</strong> Всегда смотри ширину ДИ. Если он вида [−5%, +20%] — ты просто ничего не знаешь о реальном эффекте.</li>
+        <li><strong>Селф-чек.</strong> Перед запуском задай себе: какая минимальная разница в метрике мне реально интересна с продуктовой точки зрения? Тестируй именно её, а не «всё, что покажет тест».</li>
+      </ul>
+
+    </div>
+  </section>
+</main>
+
+<div class="share-bar" id="share-bar" style="display:none">
+  <button class="share-btn" id="copy-link">Скопировать ссылку</button>
+  <button class="share-btn ghost" id="reset-form">Сбросить</button>
+  <span class="share-status" id="share-status">Скопировано</span>
+</div>
+
+<footer>
+  <span>local-only · нет бэкенда · все расчёты в браузере</span>
+  <span>v0.1 · собирается поэтапно</span>
+</footer>
+
+</div>
+
+<script>
+/* =========================================================
+   СТАТИСТИЧЕСКИЕ УТИЛИТЫ
+   ========================================================= */
+
+// Стандартное нормальное CDF (Abramowitz & Stegun 26.2.17)
+function normCdf(z) {
+  const sign = z < 0 ? -1 : 1;
+  z = Math.abs(z) / Math.sqrt(2);
+  const t = 1 / (1 + 0.3275911 * z);
+  const y = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-z * z);
+  return 0.5 * (1 + sign * y);
+}
+
+// Обратное стандартное нормальное (Beasley-Springer-Moro)
+function normInv(p) {
+  if (p <= 0 || p >= 1) return NaN;
+  const a = [-39.6968302866538, 220.946098424521, -275.928510446969, 138.357751867269, -30.6647980661472, 2.50662827745924];
+  const b = [-54.4760987982241, 161.585836858041, -155.698979859887, 66.8013118877197, -13.2806815528857];
+  const c = [-0.00778489400243029, -0.322396458041136, -2.40075827716184, -2.54973253934373, 4.37466414146497, 2.93816398269878];
+  const d = [0.00778469570904146, 0.32246712907004, 2.445134137143, 3.75440866190742];
+  const pLow = 0.02425, pHigh = 1 - pLow;
+  let q, r;
+  if (p < pLow) {
+    q = Math.sqrt(-2 * Math.log(p));
+    return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+  }
+  if (p <= pHigh) {
+    q = p - 0.5; r = q*q;
+    return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q / (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+  }
+  q = Math.sqrt(-2 * Math.log(1 - p));
+  return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+}
+
+// Хи-квадрат CDF через регуляризованную нижнюю неполную гамму
+function lowerIncompleteGamma(s, x) {
+  if (x < 0) return 0;
+  if (x === 0) return 0;
+  if (x < s + 1) {
+    let term = 1 / s, sum = term;
+    for (let n = 1; n < 200; n++) {
+      term *= x / (s + n);
+      sum += term;
+      if (Math.abs(term) < 1e-12 * Math.abs(sum)) break;
+    }
+    return sum * Math.exp(-x + s * Math.log(x) - logGamma(s));
+  }
+  // Continued fraction для верхней — потом 1 - upper
+  let b = x + 1 - s, c = 1 / 1e-30, d = 1 / b, h = d;
+  for (let i = 1; i < 200; i++) {
+    const an = -i * (i - s);
+    b += 2;
+    d = an * d + b; if (Math.abs(d) < 1e-30) d = 1e-30;
+    c = b + an / c; if (Math.abs(c) < 1e-30) c = 1e-30;
+    d = 1 / d;
+    const delta = d * c;
+    h *= delta;
+    if (Math.abs(delta - 1) < 1e-12) break;
+  }
+  const upper = Math.exp(-x + s * Math.log(x) - logGamma(s)) * h;
+  return 1 - upper;
+}
+
+function logGamma(z) {
+  const g = 7;
+  const c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+  if (z < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * z)) - logGamma(1 - z);
+  z -= 1;
+  let x = c[0];
+  for (let i = 1; i < g + 2; i++) x += c[i] / (z + i);
+  const t = z + g + 0.5;
+  return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x);
+}
+
+function chiSqCdf(x, df) { return lowerIncompleteGamma(df / 2, x / 2); }
+function chiSqSf(x, df) { return 1 - chiSqCdf(x, df); }
+
+// Удобные хелперы
+function fmt(n, dec = 2) {
+  if (!isFinite(n)) return '—';
+  if (Math.abs(n) >= 10000) return Math.round(n).toLocaleString('ru-RU');
+  return n.toFixed(dec).replace(/\.?0+$/, '') || '0';
+}
+function fmtInt(n) { return isFinite(n) ? Math.ceil(n).toLocaleString('ru-RU') : '—'; }
+function fmtPct(n, dec = 2) { return isFinite(n) ? (n * 100).toFixed(dec) + '%' : '—'; }
+function fmtPval(p) {
+  if (!isFinite(p)) return '—';
+  if (p < 0.0001) return '<0.0001';
+  return p.toFixed(4);
+}
+
+/* =========================================================
+   НАВИГАЦИЯ ПО ТАБАМ
+   ========================================================= */
+const tabs = document.querySelectorAll('.tab');
+const panels = document.querySelectorAll('.panel');
+
+function activatePanel(id) {
+  tabs.forEach(t => t.classList.toggle('active', t.dataset.panel === id));
+  panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + id));
+  // в URL
+  const url = new URL(window.location);
+  url.searchParams.set('tab', id);
+  history.replaceState(null, '', url);
+}
+
+tabs.forEach(t => t.addEventListener('click', () => activatePanel(t.dataset.panel)));
+
+/* =========================================================
+   URL STATE — общая инфраструктура
+   Каждая панель регистрирует свои поля; значения пишутся в querystring,
+   восстанавливаются при загрузке.
+   ========================================================= */
+const URLState = {
+  panels: {}, // id => { fields: [{id, type}], compute }
+
+  register(panelId, fields, compute) {
+    this.panels[panelId] = { fields, compute };
+  },
+
+  // Записать текущие значения панели в URL
+  write(panelId) {
+    const p = this.panels[panelId];
+    if (!p) return;
+    const url = new URL(window.location);
+    p.fields.forEach(f => {
+      const el = document.getElementById(f.id);
+      if (!el) return;
+      const val = el.type === 'radio' || el.type === 'checkbox'
+        ? (document.querySelector(`input[name="${el.name}"]:checked`)?.value ?? '')
+        : el.value;
+      if (val !== '' && val != null) url.searchParams.set(f.id, val);
+      else url.searchParams.delete(f.id);
+    });
+    url.searchParams.set('tab', panelId);
+    history.replaceState(null, '', url);
+  },
+
+  // Прочитать из URL и заполнить поля
+  read(panelId) {
+    const p = this.panels[panelId];
+    if (!p) return;
+    const params = new URLSearchParams(window.location.search);
+    p.fields.forEach(f => {
+      const val = params.get(f.id);
+      if (val == null) return;
+      const el = document.getElementById(f.id);
+      if (!el) return;
+      if (el.type === 'radio') {
+        const radio = document.querySelector(`input[name="${el.name}"][value="${val}"]`);
+        if (radio) radio.checked = true;
+      } else {
+        el.value = val;
+      }
+    });
+  },
+
+  // Подключить автоматическое обновление при изменении
+  bind(panelId) {
+    const p = this.panels[panelId];
+    if (!p) return;
+    p.fields.forEach(f => {
+      const el = document.getElementById(f.id);
+      if (!el) return;
+      const handler = () => { this.write(panelId); p.compute(); };
+      if (el.type === 'radio') {
+        document.querySelectorAll(`input[name="${el.name}"]`).forEach(r => r.addEventListener('change', handler));
+      } else {
+        el.addEventListener('input', handler);
+        el.addEventListener('change', handler);
+      }
+    });
+  }
+};
+
+/* =========================================================
+   SHARE & RESET
+   ========================================================= */
+document.getElementById('copy-link').addEventListener('click', async () => {
+  await navigator.clipboard.writeText(window.location.href);
+  const s = document.getElementById('share-status');
+  s.classList.add('visible');
+  setTimeout(() => s.classList.remove('visible'), 1600);
+});
+
+document.getElementById('reset-form').addEventListener('click', () => {
+  const url = new URL(window.location);
+  const tab = url.searchParams.get('tab');
+  url.search = tab ? '?tab=' + tab : '';
+  window.location.href = url.toString();
+});
+
+/* =========================================================
+   ИНИЦИАЛИЗАЦИЯ
+   ========================================================= */
+document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get('tab');
+  if (tab && document.querySelector(`.tab[data-panel="${tab}"]`)) {
+    activatePanel(tab);
+  }
+  // Показываем share-bar, как только будет хотя бы одна зарегистрированная панель
+  if (Object.keys(URLState.panels).length > 0) {
+    document.getElementById('share-bar').style.display = 'flex';
+  }
+});
+
+/* =========================================================
+   Экспортируем общие утилиты в глобал
+   ========================================================= */
+window.AB = { normCdf, normInv, chiSqSf, chiSqCdf, fmt, fmtInt, fmtPct, fmtPval, URLState };
+
+/* =========================================================
+   ПАНЕЛЬ 02 — MDE
+   ========================================================= */
+(function () {
+  function syncRadios(name) {
+    const hidden = document.getElementById(name);
+    document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+      r.addEventListener('change', () => {
+        if (r.checked) {
+          hidden.value = r.value;
+          hidden.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    });
+  }
+
+  // Размер выборки на группу для конверсий — та же формула, что в Sample Size
+  function nForConversion(p1, p2, alpha, power, sides) {
+    const za = AB.normInv(1 - alpha / sides);
+    const zb = AB.normInv(power);
+    const pBar = (p1 + p2) / 2;
+    const num = za * Math.sqrt(2 * pBar * (1 - pBar)) + zb * Math.sqrt(p1 * (1 - p1) + p2 * (1 - p2));
+    return (num * num) / Math.pow(p2 - p1, 2);
+  }
+
+  // Бинарный поиск по абсолютному эффекту: ищем минимальный Δ такой, что nForConversion ≤ n
+  function mdeConversion(p1, n, alpha, power, sides) {
+    let lo = 1e-7;
+    let hi = 1 - p1 - 1e-7;
+    if (hi <= lo) return NaN;
+    for (let i = 0; i < 80; i++) {
+      const mid = (lo + hi) / 2;
+      const nNeeded = nForConversion(p1, p1 + mid, alpha, power, sides);
+      if (nNeeded > n) lo = mid; else hi = mid;
+      if (hi - lo < 1e-9) break;
+    }
+    return (lo + hi) / 2;
+  }
+
+  function compute() {
+    const n = parseFloat(document.getElementById('md_n').value);
+    const alpha = parseFloat(document.getElementById('md_alpha').value);
+    const power = parseFloat(document.getElementById('md_power').value);
+    const sides = parseInt(document.getElementById('md_sides').value, 10);
+
+    if (!(n >= 10) || !(alpha > 0 && alpha < 0.5) || !(power > 0.5 && power < 1)) {
+      setOut(NaN, NaN, NaN, 'Проверь n, α и мощность.');
+      return;
+    }
+
+    const p1 = parseFloat(document.getElementById('md_p1').value);
+    if (!(p1 > 0 && p1 < 1)) { setOut(NaN, NaN, NaN, 'Проверь базовую конверсию.'); return; }
+    const mdeAbs = mdeConversion(p1, n, alpha, power, sides);
+    const mdeRel = mdeAbs / p1;
+    const target = p1 + mdeAbs;
+    const baseLine = `при p₁ = ${AB.fmtPct(p1, 2)} и n = ${AB.fmtInt(n)} на группу`;
+
+    let note = `<strong>${baseLine}.</strong> α=${alpha}, мощность=${power}, ${sides === 2 ? 'двусторонний' : 'односторонний'} тест.`;
+    if (mdeRel > 0.5) {
+      note += ' <strong>MDE > 50%</strong> — выборки явно мало для разумных эффектов. Имеет смысл подумать о проксе-метрике с меньшей дисперсией или о CUPED.';
+    } else if (mdeRel < 0.005) {
+      note += ' MDE < 0.5% — выборка большая, можешь ловить совсем мелкие эффекты.';
+    }
+
+    setOut(mdeRel, mdeAbs, target, note);
+  }
+
+  function setOut(mdeRel, mdeAbs, target, note) {
+    document.getElementById('md_out_rel').textContent = isFinite(mdeRel) ? AB.fmtPct(mdeRel, 2) : '—';
+    document.getElementById('md_out_abs').textContent = isFinite(mdeAbs) ? AB.fmtPct(mdeAbs, 3) : '—';
+    document.getElementById('md_out_target').textContent = isFinite(target) ? AB.fmtPct(target, 2) : '—';
+    const noteEl = document.getElementById('md_note');
+    noteEl.innerHTML = note;
+    noteEl.className = 'result-note' + (isFinite(mdeRel) ? '' : ' warn');
+  }
+
+  AB.URLState.register('mde', [
+    { id: 'md_n' }, { id: 'md_alpha' }, { id: 'md_power' },
+    { id: 'md_p1' }
+  ], compute);
+
+  AB.URLState.read('mde');
+  AB.URLState.bind('mde');
+  compute();
+})();
+
+/* =========================================================
+   ПАНЕЛЬ 01 — SAMPLE SIZE
+   ========================================================= */
+(function () {
+  // Радио-группы пишут значение в скрытый input того же id, чтобы URLState их видел.
+  // После записи диспатчим change — это триггерит compute() и URLState.write через bind.
+  function syncRadios(name) {
+    const hidden = document.getElementById(name);
+    document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+      r.addEventListener('change', () => {
+        if (r.checked) {
+          hidden.value = r.value;
+          hidden.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    });
+  }
+
+  function showBlock(metric) {
+    document.getElementById('ss-block-conversion').style.display = metric === 'conversion' ? '' : 'none';
+    document.getElementById('ss-block-continuous').style.display = metric === 'continuous' ? '' : 'none';
+  }
+
+  // Размер выборки на группу — конверсии, формула с пулинговой и непулинговой дисперсией
+  // n = (z_α·√(2p̄(1-p̄)) + z_β·√(p₁(1-p₁)+p₂(1-p₂)))² / Δ²
+  function nConversion(p1, p2, alpha, power, sides) {
+    const za = AB.normInv(1 - alpha / sides);
+    const zb = AB.normInv(power);
+    const pBar = (p1 + p2) / 2;
+    const num = za * Math.sqrt(2 * pBar * (1 - pBar)) + zb * Math.sqrt(p1 * (1 - p1) + p2 * (1 - p2));
+    const delta = p2 - p1;
+    return (num * num) / (delta * delta);
+  }
+
+  // Непрерывные: n = 2·σ²·(z_α + z_β)² / Δ²
+  function nContinuous(sigma, delta, alpha, power, sides) {
+    const za = AB.normInv(1 - alpha / sides);
+    const zb = AB.normInv(power);
+    return 2 * sigma * sigma * Math.pow(za + zb, 2) / (delta * delta);
+  }
+
+  function compute() {
+    const metric = document.getElementById('ss_metric').value;
+    showBlock(metric);
+    const alpha = parseFloat(document.getElementById('ss_alpha').value);
+    const power = parseFloat(document.getElementById('ss_power').value);
+    const sides = parseInt(document.getElementById('ss_sides').value, 10);
+    const daily = parseFloat(document.getElementById('ss_daily').value);
+
+    if (!(alpha > 0 && alpha < 0.5) || !(power > 0.5 && power < 1)) {
+      setOut(NaN, NaN, NaN, NaN, 'Проверь α и мощность.');
+      return;
+    }
+
+    let n, absMde, baseLine;
+
+    if (metric === 'conversion') {
+      const p1 = parseFloat(document.getElementById('ss_p1').value);
+      const mdeRel = parseFloat(document.getElementById('ss_mde_rel').value);
+      const p2 = p1 * (1 + mdeRel);
+      if (!(p1 > 0 && p1 < 1) || !(p2 > 0 && p2 < 1) || !(mdeRel > 0)) {
+        setOut(NaN, NaN, NaN, NaN, 'Проверь конверсию и MDE (p₂ должно остаться в диапазоне 0..1).');
+        return;
+      }
+      n = nConversion(p1, p2, alpha, power, sides);
+      absMde = p2 - p1;
+      baseLine = `p₁ = ${AB.fmtPct(p1, 2)}, p₂ = ${AB.fmtPct(p2, 2)}, абс. эффект ${AB.fmtPct(absMde, 3)}`;
+    } else if (metric === 'continuous') {
+      const mean = parseFloat(document.getElementById('ss_mean').value);
+      const sd = parseFloat(document.getElementById('ss_sd').value);
+      const mdeRel = parseFloat(document.getElementById('ss_mde_rel_c').value);
+      const delta = mean * mdeRel;
+      if (!(sd > 0) || !(delta > 0)) {
+        setOut(NaN, NaN, NaN, NaN, 'Проверь σ и MDE.');
+        return;
+      }
+      n = nContinuous(sd, delta, alpha, power, sides);
+      absMde = delta;
+      const cv = sd / Math.abs(mean);
+      baseLine = `σ/μ = ${AB.fmt(cv, 2)} (коэф. вариации), Δ = ${AB.fmt(delta, 2)}`;
+    } else {
+      // защитный fallback
+      setOut(NaN, NaN, NaN, NaN, 'Неизвестный тип метрики. Выбери пресет.');
+      return;
+    }
+
+    const total = n * 2;
+    const days = (daily > 0) ? total / daily : NaN;
+
+    let note = `<strong>${baseLine}.</strong> Двусторонний z-тест, α=${alpha}, мощность=${power}.`;
+    if (metric === 'continuous') {
+      note += ' Используется нормальная аппроксимация — для длиннохвостых распределений (revenue, ARPPU) рассмотри логарифмирование или CUPED для уменьшения дисперсии.';
+    }
+    if (n < 100) {
+      note += ' <strong>n меньше 100 на группу</strong> — z-аппроксимация может давать заниженный размер, добавь запас или используй точный тест.';
+    }
+
+    setOut(n, total, days, absMde, note);
+  }
+
+  function setOut(n, total, days, absMde, note) {
+    document.getElementById('ss_out_per_group').textContent = AB.fmtInt(n);
+    document.getElementById('ss_out_total').textContent = AB.fmtInt(total);
+    document.getElementById('ss_out_days').textContent = isFinite(days) ? AB.fmt(days, 1) + ' дн.' : '—';
+    const metric = document.getElementById('ss_metric').value;
+    if (metric === 'conversion') {
+      document.getElementById('ss_out_abs_mde').textContent = isFinite(absMde) ? AB.fmtPct(absMde, 3) : '—';
+    } else {
+      document.getElementById('ss_out_abs_mde').textContent = isFinite(absMde) ? AB.fmt(absMde, 2) : '—';
+    }
+    const noteEl = document.getElementById('ss_note');
+    noteEl.innerHTML = note;
+    noteEl.className = 'result-note' + (isFinite(n) ? '' : ' warn');
+
+    // Дополнительный блок «MDE для C1» — показываем только при активном пресете paywall_c1risk
+    updateC1Risk(n);
+  }
+
+  /* ---------- Пресеты ---------- */
+  const PRESETS = {
+    none: {
+      sub: 'Двусторонний z-тест. Возвращает размер на одну группу — итого нужно ×2 (или ×k для A/B/n).',
+      apply: () => {} // ничего не меняем
+    },
+    paywall_c0: {
+      sub: '<strong>Paywall / лендинг (C0).</strong> Базовая binomial-конверсия в первую оплату. Дефолты под типичный SaaS-paywall: C0=5%, MDE=10% rel, мощность 80%.',
+      apply: () => {
+        setMetric('conversion');
+        setVal('ss_p1', 0.05);
+        setVal('ss_mde_rel', 0.10);
+        setVal('ss_alpha', 0.05);
+        setVal('ss_power', 0.8);
+      }
+    },
+    paywall_c1risk: {
+      sub: '<strong>Paywall с риском на C1.</strong> Дизайним под C0, но эксперимент может задеть C1 (продление). Считаем основной n по C0, ниже показываем, какой минимальный эффект на C1 поймаем на той же выборке. Знаменатель для C1 = только те, кто оплатил C0 — поэтому MDE для C1 будет хуже.',
+      apply: () => {
+        setMetric('conversion');
+        setVal('ss_p1', 0.05);     // C0
+        setVal('ss_mde_rel', 0.10); // целевой MDE для C0
+        setVal('ss_alpha', 0.05);
+        setVal('ss_power', 0.8);
+        setVal('ss_c1_base', 60);  // типичный C1, % для SaaS-подписки
+        setVal('ss_c1_expected', -3); // типичная просадка C1 при агрессивном paywall
+      }
+    },
+    arppu: {
+      sub: '<strong>ARPPU.</strong> Continuous-метрика на платящих. <strong>Длинный хвост</strong> (годовые/семейные тарифы) — нормальная аппроксимация занижает n. Возьми посчитанное значение и <strong>умножь на 1.5</strong> как базовый запас, либо логарифмируй метрику, либо примени CUPED. Дефолты: μ=450₽ (типичный месячный ARPPU), σ=800₽ (характерная для длинного хвоста дисперсия).',
+      apply: () => {
+        setMetric('continuous');
+        setVal('ss_mean', 450);
+        setVal('ss_sd', 800);
+        setVal('ss_mde_rel_c', 0.05);
+        setVal('ss_alpha', 0.05);
+        setVal('ss_power', 0.8);
+      }
+    }
+  };
+
+  function setMetric(value) {
+    const hidden = document.getElementById('ss_metric');
+    if (hidden && hidden.value !== value) {
+      hidden.value = value;
+      hidden.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+  function setVal(id, value) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.value = value;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
+  function applyPreset(name) {
+    const preset = PRESETS[name];
+    if (!preset) return;
+    document.getElementById('ss_sub').innerHTML = preset.sub;
+    preset.apply();
+    // визуально: помечаем активную кнопку
+    document.querySelectorAll('.preset-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.preset === name);
+    });
+    // в URL
+    const url = new URL(window.location);
+    if (name === 'none') url.searchParams.delete('ss_preset');
+    else url.searchParams.set('ss_preset', name);
+    history.replaceState(null, '', url);
+    compute();
+  }
+
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+  });
+
+  /* ---------- Доп. расчёт MDE для C1 ---------- */
+  // Для пресета paywall_c1risk: знаем n на группу для C0, и базовый C1|C0.
+  // Эффективная выборка для C1 = n * C0 (только те, кто оплатил C0).
+  // Считаем минимальный p2 > p1, при котором требуемое n_conversion(p1, p2) <= имеющемуся n.
+  // Чем меньше p2 — тем больше нужно n (обратная зависимость), поэтому ищем границу.
+  function mdeForConversion(n_per_group, p1, alpha, power, sides) {
+    if (!(n_per_group > 0 && p1 > 0 && p1 < 1)) return NaN;
+
+    const required = n_per_group;
+    const hiP2 = Math.min(p1 + 0.999, 0.9999);
+
+    // Sanity: если даже на максимальном эффекте (p2 = hiP2) требуется БОЛЬШЕ юзеров чем есть —
+    // выборки совсем не хватает, эффект не поймаем.
+    if (nConversion(p1, hiP2, alpha, power, sides) > required) {
+      return NaN; // невозможно поймать никакой эффект
+    }
+
+    // Бинарный поиск: ищем минимальный p2 такой, что nConversion(p1, p2) <= required.
+    // n(p2) монотонно убывает по мере роста p2, так что:
+    //   p2 = lo  → n очень большое (>required)
+    //   p2 = hi  → n маленькое   (≤required)
+    // Сужаем интервал.
+    let lo = p1 * 1.0001; // чуть выше p1, иначе delta=0 и n=∞
+    let hi = hiP2;
+    for (let iter = 0; iter < 80; iter++) {
+      const mid = (lo + hi) / 2;
+      const nMid = nConversion(p1, mid, alpha, power, sides);
+      if (nMid > required) {
+        // нужно больше юзеров чем есть → надо ещё бóльший эффект
+        lo = mid;
+      } else {
+        // юзеров хватает → можно поискать меньший эффект
+        hi = mid;
+      }
+      if (Math.abs(hi - lo) < 1e-7) break;
+    }
+    return (hi - p1) / p1; // относительный MDE
+  }
+
+  function updateC1Risk(n_c0_per_group) {
+    const block = document.getElementById('ss_c1_risk');
+    const activePreset = document.querySelector('.preset-btn.active');
+    const isC1Risk = activePreset && activePreset.dataset.preset === 'paywall_c1risk';
+    if (!isC1Risk || !isFinite(n_c0_per_group) || n_c0_per_group <= 0) {
+      block.classList.remove('visible');
+      return;
+    }
+
+    const c0 = parseFloat(document.getElementById('ss_p1').value);
+    const c1 = parseFloat(document.getElementById('ss_c1_base').value) / 100;
+    const expectedPct = parseFloat(document.getElementById('ss_c1_expected').value);
+    const alpha = parseFloat(document.getElementById('ss_alpha').value);
+    const power = parseFloat(document.getElementById('ss_power').value);
+    const sides = parseInt(document.getElementById('ss_sides').value, 10);
+
+    if (!(c0 > 0 && c0 < 1) || !(c1 > 0 && c1 < 1)) {
+      block.classList.remove('visible');
+      return;
+    }
+
+    block.classList.add('visible');
+
+    const verdictEl = document.getElementById('ss_c1_verdict');
+    const noteEl = document.getElementById('ss_c1_note');
+
+    // Эффективная выборка для C1 = только те, кто прошёл C0
+    const n_c1 = Math.floor(n_c0_per_group * c0);
+    const mdeRel = mdeForConversion(n_c1, c1, alpha, power, sides);
+
+    // Если пользователь не ввёл ожидаемый эффект — показываем только MDE
+    if (!isFinite(expectedPct)) {
+      if (isFinite(mdeRel)) {
+        verdictEl.innerHTML = `MDE <strong>${AB.fmtPct(mdeRel, 1)}</strong> <span class="sec-unit">отн. на C1</span>`;
+        verdictEl.style.color = 'var(--ink)';
+        noteEl.innerHTML = `Эффективная выборка для C1 = <strong>${AB.fmtInt(n_c1)}</strong> на группу. Введи ожидаемый эффект на C1, чтобы получить вердикт.`;
+      } else {
+        verdictEl.innerHTML = '<span style="color:var(--accent)">не поймаем ничего</span>';
+        noteEl.innerHTML = `Эффективная выборка ${AB.fmtInt(n_c1)} — катастрофически мало.`;
+      }
+      return;
+    }
+
+    if (!isFinite(mdeRel)) {
+      verdictEl.innerHTML = '<span style="color:var(--accent)">Не поймаем</span>';
+      noteEl.innerHTML = `Эффективная выборка для C1 = <strong>${AB.fmtInt(n_c1)}</strong> на группу — её настолько мало, что даже эффект, удваивающий C1, не поймаем.`;
+      return;
+    }
+
+    const expectedAbs = Math.abs(expectedPct) / 100;  // в долях, по модулю
+    const expectedSign = expectedPct < 0 ? '−' : '+';
+    const direction = expectedPct < 0 ? 'просадка' : 'рост';
+
+    // Вердикт: с запасом / на грани / нет
+    let verdict, color, costNote = '';
+
+    if (expectedAbs >= mdeRel * 1.2) {
+      verdict = 'Поймаем';
+      color = 'var(--good)';
+    } else if (expectedAbs >= mdeRel) {
+      verdict = 'Поймаем на грани';
+      color = 'var(--ink)';
+    } else {
+      verdict = 'Не поймаем';
+      color = 'var(--accent)';
+      // Сколько нужно юзеров, чтобы поймать
+      // Решаем обратную задачу: n такое, что mdeForConversion(n, c1) = expectedAbs
+      const targetP2 = c1 * (1 + expectedAbs);
+      if (targetP2 < 1) {
+        const n_needed_c1 = nConversion(c1, targetP2, alpha, power, sides);
+        const n_needed_c0 = n_needed_c1 / c0;
+        const ratio = n_needed_c0 / n_c0_per_group;
+        if (isFinite(ratio) && ratio > 1) {
+          costNote = ` Чтобы поймать <strong>${expectedSign}${expectedAbs * 100}% rel</strong>, нужно в <strong>${ratio.toFixed(1)}× больше</strong> юзеров (около ${AB.fmtInt(n_needed_c0)} на группу для C0).`;
+        }
+      }
+    }
+
+    verdictEl.innerHTML = `<span style="color:${color}"><strong>${verdict}</strong></span> <span class="sec-unit">эффект ${expectedSign}${expectedAbs * 100}% на C1</span>`;
+    verdictEl.style.color = '';
+    noteEl.innerHTML = `MDE на C1 при текущей выборке = <strong>${AB.fmtPct(mdeRel, 1)} rel</strong> (эффективная выборка ${AB.fmtInt(n_c1)} на группу из ${AB.fmtInt(n_c0_per_group)}). Ожидаешь ${direction} ${expectedAbs * 100}% — это ${expectedAbs >= mdeRel ? 'выше' : 'ниже'} порога детектирования.${costNote}`;
+  }
+
+  // C1-base и ожидаемый эффект — реактивно
+  document.getElementById('ss_c1_base').addEventListener('input', compute);
+  document.getElementById('ss_c1_expected').addEventListener('input', compute);
+
+  // Применить пресет из URL при загрузке
+  function loadPresetFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const preset = params.get('ss_preset');
+    if (preset && PRESETS[preset]) {
+      // активируем визуально и обновляем подзаголовок, но не вызываем apply()
+      // (значения уже придут из URL через URLState.read)
+      document.querySelectorAll('.preset-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.preset === preset);
+      });
+      document.getElementById('ss_sub').innerHTML = PRESETS[preset].sub;
+    } else {
+      document.querySelector('.preset-btn[data-preset="none"]').classList.add('active');
+    }
+  }
+
+  AB.URLState.register('sample-size', [
+    { id: 'ss_metric' },
+    { id: 'ss_p1' }, { id: 'ss_mde_rel' },
+    { id: 'ss_mean' }, { id: 'ss_sd' }, { id: 'ss_mde_rel_c' },
+    { id: 'ss_alpha' }, { id: 'ss_power' }, { id: 'ss_daily' },
+    { id: 'ss_c1_base' }, { id: 'ss_c1_expected' }
+  ], compute);
+
+  AB.URLState.read('sample-size');
+  AB.URLState.bind('sample-size');
+  loadPresetFromUrl();
+  // первичный пересчёт
+  compute();
+})();
+
+/* =========================================================
+   ПАНЕЛЬ 03 — POST-HOC
+   ========================================================= */
+(function () {
+  function syncRadios(name) {
+    const hidden = document.getElementById(name);
+    document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+      r.addEventListener('change', () => {
+        if (r.checked) {
+          hidden.value = r.value;
+          hidden.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    });
+  }
+  syncRadios('ph_metric');
+
+  function showBlock(metric) {
+    document.getElementById('ph-block-conversion').style.display = metric === 'conversion' ? '' : 'none';
+    document.getElementById('ph-block-continuous').style.display = metric === 'continuous' ? '' : 'none';
+  }
+
+  // Двухвыборочный z-тест для пропорций.
+  // z = (p2 - p1) / sqrt(p_pool*(1-p_pool)*(1/n1 + 1/n2))   ← пулинговая для теста
+  // ДИ для абсолютной разницы — Wald (непулинговая дисперсия)
+  function zPropTest(x1, n1, x2, n2) {
+    const p1 = x1 / n1, p2 = x2 / n2;
+    const pPool = (x1 + x2) / (n1 + n2);
+    const seTest = Math.sqrt(pPool * (1 - pPool) * (1 / n1 + 1 / n2));
+    const z = seTest > 0 ? (p2 - p1) / seTest : 0;
+    const seCI = Math.sqrt(p1 * (1 - p1) / n1 + p2 * (1 - p2) / n2);
+    return { p1, p2, z, seCI };
+  }
+
+  // Welch z-тест для непрерывных (не t — для больших n разница пренебрежимо мала)
+  function zMeanTest(m1, s1, n1, m2, s2, n2) {
+    const seCI = Math.sqrt(s1 * s1 / n1 + s2 * s2 / n2);
+    const z = seCI > 0 ? (m2 - m1) / seCI : 0;
+    return { z, seCI };
+  }
+
+  // p-value: для двустороннего 2·(1-Φ(|z|)), для одностороннего — выбираем хвост по знаку z
+  function pValueFromZ(z, sides) {
+    const cdf = AB.normCdf(Math.abs(z));
+    if (sides === 2) return 2 * (1 - cdf);
+    // односторонний: H1: μ2 > μ1 (правый хвост) — стандартное предположение для тестов "новый лучше"
+    return 1 - AB.normCdf(z);
+  }
+
+  // ДИ для отношения средних μ2/μ1 через дельта-метод на лог-шкале:
+  // log(μ2/μ1) ≈ Normal(log(μ2/μ1), σ²₁/(μ²₁n₁) + σ²₂/(μ²₂n₂))
+  // Lift = μ2/μ1 - 1, ДИ = exp(log(μ2/μ1) ± z_{α/2}·SE) - 1
+  function ciLift(m1, s1, n1, m2, s2, n2, zCrit) {
+    if (!(m1 > 0) || !(m2 > 0)) return [NaN, NaN];
+    const ratio = m2 / m1;
+    const varLog = (s1 * s1) / (m1 * m1 * n1) + (s2 * s2) / (m2 * m2 * n2);
+    const seLog = Math.sqrt(varLog);
+    const lo = Math.exp(Math.log(ratio) - zCrit * seLog) - 1;
+    const hi = Math.exp(Math.log(ratio) + zCrit * seLog) - 1;
+    return [lo, hi];
+  }
+
+  function compute() {
+    const metric = document.getElementById('ph_metric').value;
+    showBlock(metric);
+    const alpha = parseFloat(document.getElementById('ph_alpha').value);
+    const sides = parseInt(document.getElementById('ph_sides').value, 10);
+
+    if (!(alpha > 0 && alpha < 0.5)) {
+      setOut(NaN, NaN, NaN, NaN, [NaN, NaN], [NaN, NaN], 'Проверь α.', metric);
+      return;
+    }
+
+    // Двусторонняя z для ДИ — всегда z_{α/2}, даже если тест односторонний.
+    // Для одностороннего теста ДИ показываем как двусторонний 1-α — общепринятая практика.
+    const zCrit = AB.normInv(1 - alpha / 2);
+
+    let z, pVal, diff, lift, ciAbs, ciLiftRange, sigma1Info = '';
+
+    if (metric === 'conversion') {
+      const n1 = parseInt(document.getElementById('ph_n1').value, 10);
+      const x1 = parseInt(document.getElementById('ph_x1').value, 10);
+      const n2 = parseInt(document.getElementById('ph_n2').value, 10);
+      const x2 = parseInt(document.getElementById('ph_x2').value, 10);
+      if (!(n1 > 0 && n2 > 0 && x1 >= 0 && x2 >= 0 && x1 <= n1 && x2 <= n2)) {
+        setOut(NaN, NaN, NaN, NaN, [NaN, NaN], [NaN, NaN], 'Проверь входные данные: x ≤ n, оба положительны.', metric);
+        return;
+      }
+      const r = zPropTest(x1, n1, x2, n2);
+      z = r.z;
+      pVal = pValueFromZ(z, sides);
+      diff = r.p2 - r.p1;
+      lift = r.p1 > 0 ? diff / r.p1 : NaN;
+      ciAbs = [diff - zCrit * r.seCI, diff + zCrit * r.seCI];
+      // для конверсий используем "сигмы" пропорций
+      ciLiftRange = ciLift(r.p1, Math.sqrt(r.p1 * (1 - r.p1)), n1, r.p2, Math.sqrt(r.p2 * (1 - r.p2)), n2, zCrit);
+      sigma1Info = `p₁ = ${AB.fmtPct(r.p1, 3)}, p₂ = ${AB.fmtPct(r.p2, 3)}`;
+    } else {
+      const n1 = parseInt(document.getElementById('ph_cn1').value, 10);
+      const m1 = parseFloat(document.getElementById('ph_m1').value);
+      const s1 = parseFloat(document.getElementById('ph_s1').value);
+      const n2 = parseInt(document.getElementById('ph_cn2').value, 10);
+      const m2 = parseFloat(document.getElementById('ph_m2').value);
+      const s2 = parseFloat(document.getElementById('ph_s2').value);
+      if (!(n1 >= 2 && n2 >= 2 && s1 >= 0 && s2 >= 0)) {
+        setOut(NaN, NaN, NaN, NaN, [NaN, NaN], [NaN, NaN], 'Проверь входные данные: n ≥ 2, σ ≥ 0.', metric);
+        return;
+      }
+      const r = zMeanTest(m1, s1, n1, m2, s2, n2);
+      z = r.z;
+      pVal = pValueFromZ(z, sides);
+      diff = m2 - m1;
+      lift = m1 !== 0 ? diff / Math.abs(m1) : NaN;
+      ciAbs = [diff - zCrit * r.seCI, diff + zCrit * r.seCI];
+      ciLiftRange = ciLift(m1, s1, n1, m2, s2, n2, zCrit);
+      sigma1Info = `μ₁ = ${AB.fmt(m1, 2)}, μ₂ = ${AB.fmt(m2, 2)}`;
+    }
+
+    let note = `<strong>${sigma1Info}.</strong> Двусторонний z-тест, α = ${alpha}.`;
+    const significant = pVal < alpha;
+    if (significant) {
+      note += ` <strong>Значимо:</strong> p = ${AB.fmtPval(pVal)} < ${alpha}.`;
+    } else {
+      note += ` <strong>Не значимо:</strong> p = ${AB.fmtPval(pVal)} ≥ ${alpha}. Это не "эффекта нет" — это "не отвергаем H₀". Смотри ширину ДИ: если он узкий и около нуля — эффекта скорее нет; если широкий — выборки не хватило.`;
+    }
+    if (sides === 1) {
+      note += ' ДИ построен как двусторонний (1−α) — общепринятая практика. Сам тест проверяет правый хвост (μ₂ > μ₁).';
+    }
+
+    setOut(pVal, z, diff, lift, ciAbs, ciLiftRange, note, metric, significant);
+  }
+
+  function fmtCI(lo, hi, fmtFn) {
+    if (!isFinite(lo) || !isFinite(hi)) return '—';
+    return `[${fmtFn(lo)}, ${fmtFn(hi)}]`;
+  }
+
+  function setOut(pVal, z, diff, lift, ciAbs, ciLift, note, metric, significant) {
+    document.getElementById('ph_out_p').textContent = AB.fmtPval(pVal);
+    document.getElementById('ph_out_z').textContent = isFinite(z) ? AB.fmt(z, 3) : '—';
+
+    if (metric === 'conversion') {
+      document.getElementById('ph_out_diff').textContent = isFinite(diff) ? (diff >= 0 ? '+' : '') + AB.fmtPct(diff, 3) : '—';
+      document.getElementById('ph_out_ci_abs').textContent = fmtCI(ciAbs[0], ciAbs[1], v => AB.fmtPct(v, 3));
+    } else {
+      document.getElementById('ph_out_diff').textContent = isFinite(diff) ? (diff >= 0 ? '+' : '') + AB.fmt(diff, 2) : '—';
+      document.getElementById('ph_out_ci_abs').textContent = fmtCI(ciAbs[0], ciAbs[1], v => AB.fmt(v, 2));
+    }
+
+    document.getElementById('ph_out_lift').textContent = isFinite(lift) ? (lift >= 0 ? '+' : '') + AB.fmtPct(lift, 2) : '—';
+    document.getElementById('ph_out_ci_lift').textContent = fmtCI(ciLift[0], ciLift[1], v => AB.fmtPct(v, 2));
+
+    const noteEl = document.getElementById('ph_note');
+    noteEl.innerHTML = note;
+    noteEl.className = 'result-note';
+    if (!isFinite(pVal)) {
+      noteEl.classList.add('warn');
+    } else if (significant) {
+      noteEl.classList.add('good');
+    }
+  }
+
+  AB.URLState.register('posthoc', [
+    { id: 'ph_metric' }, { id: 'ph_alpha' },
+    { id: 'ph_n1' }, { id: 'ph_x1' }, { id: 'ph_n2' }, { id: 'ph_x2' },
+    { id: 'ph_cn1' }, { id: 'ph_m1' }, { id: 'ph_s1' },
+    { id: 'ph_cn2' }, { id: 'ph_m2' }, { id: 'ph_s2' }
+  ], compute);
+
+  AB.URLState.read('posthoc');
+  AB.URLState.bind('posthoc');
+  compute();
+})();
+
+/* =========================================================
+   ПАНЕЛЬ 04 — SRM (Sample Ratio Mismatch)
+   χ² goodness-of-fit. Для каждого варианта: ожидаемая доля * total vs фактически.
+   ========================================================= */
+(function () {
+  const container = document.getElementById('srm_rows_container');
+  const kInput = document.getElementById('srm_k');
+
+  function buildRows(k) {
+    container.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'form-grid';
+    grid.style.gridTemplateColumns = '1fr 1fr 1fr';
+    // header row
+    const h1 = document.createElement('div'); h1.style.fontFamily = "'JetBrains Mono', monospace"; h1.style.fontSize = '11px'; h1.style.letterSpacing = '0.06em'; h1.style.textTransform = 'uppercase'; h1.style.color = 'var(--ink-muted)'; h1.textContent = 'Вариант';
+    const h2 = h1.cloneNode(); h2.textContent = 'Ожидаемая доля';
+    const h3 = h1.cloneNode(); h3.textContent = 'Фактически юзеров';
+    grid.append(h1, h2, h3);
+    for (let i = 0; i < k; i++) {
+      const label = document.createElement('div');
+      label.textContent = i === 0 ? 'A (контроль)' : (i === 1 ? 'B' : String.fromCharCode(65 + i));
+      label.style.fontFamily = "'JetBrains Mono', monospace";
+      label.style.fontSize = '14px';
+      label.style.alignSelf = 'center';
+
+      const expIn = document.createElement('input');
+      expIn.type = 'number';
+      expIn.step = '0.01'; expIn.min = '0'; expIn.max = '1';
+      expIn.id = `srm_exp_${i}`;
+      expIn.value = (1 / k).toFixed(4);
+      expIn.style.fontFamily = "'JetBrains Mono', monospace";
+      expIn.style.fontSize = '16px';
+      expIn.style.padding = '10px 12px';
+      expIn.style.border = '1px solid var(--line)';
+      expIn.style.background = 'var(--input-bg)';
+
+      const actIn = expIn.cloneNode();
+      actIn.id = `srm_act_${i}`;
+      actIn.step = '1'; actIn.min = '0'; actIn.removeAttribute('max');
+      actIn.value = '50000';
+
+      grid.append(label, expIn, actIn);
+    }
+    container.appendChild(grid);
+
+    // подключаем listeners
+    for (let i = 0; i < k; i++) {
+      const exp = document.getElementById(`srm_exp_${i}`);
+      const act = document.getElementById(`srm_act_${i}`);
+      [exp, act].forEach(el => {
+        el.addEventListener('input', () => { writeUrl(); compute(); });
+        el.addEventListener('change', () => { writeUrl(); compute(); });
+      });
+    }
+  }
+
+  function writeUrl() {
+    const url = new URL(window.location);
+    const k = parseInt(kInput.value, 10);
+    url.searchParams.set('srm_k', k);
+    for (let i = 0; i < k; i++) {
+      const exp = document.getElementById(`srm_exp_${i}`);
+      const act = document.getElementById(`srm_act_${i}`);
+      if (exp) url.searchParams.set(`srm_exp_${i}`, exp.value);
+      if (act) url.searchParams.set(`srm_act_${i}`, act.value);
+    }
+    // удаляем индексы выше k
+    for (let i = k; i < 10; i++) {
+      url.searchParams.delete(`srm_exp_${i}`);
+      url.searchParams.delete(`srm_act_${i}`);
+    }
+    url.searchParams.set('tab', 'srm');
+    history.replaceState(null, '', url);
+  }
+
+  function readUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const kFromUrl = parseInt(params.get('srm_k'), 10);
+    if (kFromUrl >= 2 && kFromUrl <= 10) {
+      kInput.value = kFromUrl;
+      buildRows(kFromUrl);
+      for (let i = 0; i < kFromUrl; i++) {
+        const exp = params.get(`srm_exp_${i}`);
+        const act = params.get(`srm_act_${i}`);
+        if (exp != null) document.getElementById(`srm_exp_${i}`).value = exp;
+        if (act != null) document.getElementById(`srm_act_${i}`).value = act;
+      }
+    }
+  }
+
+  function compute() {
+    const k = parseInt(kInput.value, 10);
+    if (!(k >= 2 && k <= 10)) return setOut('—', '—', '—', '—', 'k должно быть от 2 до 10.', 'warn');
+
+    const expected = [], actual = [];
+    let totalActual = 0, totalExpRatio = 0;
+    for (let i = 0; i < k; i++) {
+      const e = parseFloat(document.getElementById(`srm_exp_${i}`).value);
+      const a = parseInt(document.getElementById(`srm_act_${i}`).value, 10);
+      if (!(e > 0) || !(a >= 0)) return setOut('—', '—', '—', '—', `Проверь значения для варианта ${i + 1}.`, 'warn');
+      expected.push(e);
+      actual.push(a);
+      totalActual += a;
+      totalExpRatio += e;
+    }
+
+    if (Math.abs(totalExpRatio - 1) > 0.01) {
+      return setOut(AB.fmtInt(totalActual), '—', '—', '—', `Ожидаемые доли в сумме дают ${totalExpRatio.toFixed(3)}, должно быть 1.0. Проверь.`, 'warn');
+    }
+    if (totalActual === 0) return setOut('—', '—', '—', '—', 'Ноль юзеров.', 'warn');
+
+    let chi = 0;
+    for (let i = 0; i < k; i++) {
+      const exp = expected[i] * totalActual;
+      if (exp <= 0) continue;
+      chi += Math.pow(actual[i] - exp, 2) / exp;
+    }
+    const df = k - 1;
+    const pVal = AB.chiSqSf(chi, df);
+
+    // Вердикт: индустриальный порог для SRM — 0.001, не 0.05.
+    // Microsoft, Booking, и другие используют именно 0.001 — потому что мы запускаем
+    // эту проверку на каждом тесте, ложноположительные накапливаются.
+    const SRM_THRESHOLD = 0.001;
+    const triggered = pVal < SRM_THRESHOLD;
+    const verdictStr = triggered ? 'SRM!' : 'OK';
+    const verdictClass = triggered ? 'warn' : 'good';
+
+    // Соберём строки для note: "ожидали X, получили Y, отклонение Z%"
+    const lines = [];
+    for (let i = 0; i < k; i++) {
+      const exp = expected[i] * totalActual;
+      const dev = (actual[i] - exp) / exp * 100;
+      const variant = i === 0 ? 'A' : (i === 1 ? 'B' : String.fromCharCode(65 + i));
+      lines.push(`${variant}: ожидали ${AB.fmtInt(exp)}, получили ${AB.fmtInt(actual[i])} (${dev >= 0 ? '+' : ''}${dev.toFixed(2)}%)`);
+    }
+
+    let note = `<strong>${lines.join(' · ')}.</strong> `;
+    if (triggered) {
+      note += `<strong>SRM detected:</strong> p = ${AB.fmtPval(pVal)} &lt; 0.001 (индустриальный порог для SRM, не 0.05). Сплит-система отдала юзеров криво. Возможные причины: бот-трафик в одной из групп, проблема с куками/сессиями, баг в SDK эксперимента, фильтрация юзеров после сплита (не делай этого). <strong>Тест выкидывать, искать причину.</strong>`;
+    } else if (pVal < 0.05) {
+      note += `p = ${AB.fmtPval(pVal)}. По стандартному порогу 0.05 это бы насторожило, но для SRM используется более строгий порог 0.001 — тут нормально. Просто помни про эту проверку.`;
+    } else {
+      note += `p = ${AB.fmtPval(pVal)}. Распределение в пределах ожидаемого случайного шума.`;
+    }
+
+    setOut(AB.fmtInt(totalActual), AB.fmt(chi, 4), AB.fmtPval(pVal), verdictStr, note, verdictClass);
+  }
+
+  function setOut(total, chi, p, verdict, note, cls) {
+    document.getElementById('srm_out_total').textContent = total;
+    document.getElementById('srm_out_chi').textContent = chi;
+    document.getElementById('srm_out_p').textContent = p;
+    const v = document.getElementById('srm_out_verdict');
+    v.textContent = verdict;
+    v.style.color = cls === 'warn' ? 'var(--accent)' : (cls === 'good' ? 'var(--good)' : 'var(--ink)');
+    const noteEl = document.getElementById('srm_note');
+    noteEl.innerHTML = note;
+    noteEl.className = 'result-note' + (cls === 'warn' ? ' warn' : (cls === 'good' ? ' good' : ''));
+  }
+
+  // Перестроение при смене k
+  kInput.addEventListener('input', () => {
+    const k = parseInt(kInput.value, 10);
+    if (k >= 2 && k <= 10) {
+      buildRows(k);
+      writeUrl();
+      compute();
+    }
+  });
+
+  // Первичная инициализация
+  buildRows(parseInt(kInput.value, 10));
+  readUrl();
+  compute();
+})();
+
+/* =========================================================
+   ПАНЕЛЬ 05 — МОНИТОР
+   Реактивный мониторинг идущего эксперимента: SRM, C0, C1, прогресс,
+   главный вердикт. Все расчёты обновляются по событию input на любом
+   из полей.
+   ========================================================= */
+(function () {
+  const FIELDS_PLAN = ['mon_plan_n', 'mon_base_c0', 'mon_base_c1', 'mon_alpha'];
+  const FIELDS_FACT = ['mon_n1', 'mon_n2', 'mon_x1', 'mon_x2', 'mon_y1', 'mon_y2'];
+  const ALL_FIELDS = [...FIELDS_PLAN, ...FIELDS_FACT];
+
+  function $(id) { return document.getElementById(id); }
+  function num(id) {
+    const v = parseFloat($(id).value);
+    return isNaN(v) ? null : v;
+  }
+
+  // Двухвыборочный z-тест для пропорций. Возвращает {p1, p2, z, pVal, lift, ciAbsLow, ciAbsHigh}
+  function propTest(x1, n1, x2, n2, alpha) {
+    if (!(n1 > 0 && n2 > 0) || x1 < 0 || x2 < 0 || x1 > n1 || x2 > n2) return null;
+    const p1 = x1 / n1, p2 = x2 / n2;
+    const pPool = (x1 + x2) / (n1 + n2);
+    const seTest = Math.sqrt(pPool * (1 - pPool) * (1 / n1 + 1 / n2));
+    const z = seTest > 0 ? (p2 - p1) / seTest : 0;
+    const pVal = 2 * (1 - AB.normCdf(Math.abs(z)));
+    const lift = p1 > 0 ? (p2 - p1) / p1 : NaN;
+    const seCI = Math.sqrt(p1 * (1 - p1) / n1 + p2 * (1 - p2) / n2);
+    const zCrit = AB.normInv(1 - alpha / 2);
+    const ciAbsLow = (p2 - p1) - zCrit * seCI;
+    const ciAbsHigh = (p2 - p1) + zCrit * seCI;
+    return { p1, p2, z, pVal, lift, ciAbsLow, ciAbsHigh };
+  }
+
+  // SRM 50/50 chi-square
+  function srmTest(n1, n2) {
+    const total = n1 + n2;
+    if (total <= 0) return null;
+    const expected = total / 2;
+    const chi = Math.pow(n1 - expected, 2) / expected + Math.pow(n2 - expected, 2) / expected;
+    const pVal = AB.chiSqSf(chi, 1);
+    return { chi, pVal, n1, n2, total };
+  }
+
+  function setStatus(elId, status, label) {
+    const el = $(elId);
+    el.className = 'status ' + status;
+    el.textContent = label;
+  }
+
+  function setVerdict(card, label, sub, color) {
+    $('mon_verdict_card').className = 'verdict-card ' + color;
+    $('mon_verdict').textContent = label;
+    $('mon_verdict_sub').innerHTML = sub;
+  }
+
+  function compute() {
+    // План
+    const planN = num('mon_plan_n');
+    const baseC0 = num('mon_base_c0') / 100;
+    const baseC1 = num('mon_base_c1') / 100;
+    const alpha = num('mon_alpha');
+
+    // Факт
+    const n1 = num('mon_n1');
+    const n2 = num('mon_n2');
+    const x1 = num('mon_x1');
+    const x2 = num('mon_x2');
+    const y1 = num('mon_y1');
+    const y2 = num('mon_y2');
+
+    // === Состояние подсистем ===
+    let srm = null, c0 = null, c1 = null;
+
+    // SRM работает, как только есть n1 и n2 > 0
+    if (n1 > 0 && n2 > 0) {
+      srm = srmTest(n1, n2);
+    }
+
+    // C0: нужны n и x в обеих группах
+    if (n1 > 0 && n2 > 0 && x1 != null && x2 != null && alpha > 0) {
+      c0 = propTest(x1, n1, x2, n2, alpha);
+    }
+
+    // C1: нужны y в обеих группах. Знаменатель C1 = x (только оплатившие C0)
+    if (x1 > 0 && x2 > 0 && y1 != null && y2 != null && alpha > 0) {
+      c1 = propTest(y1, x1, y2, x2, alpha);
+    }
+
+    // === Прогресс выборки ===
+    updateProgress(planN, n1, n2);
+
+    // === SRM ===
+    updateSRM(srm);
+
+    // === C0 ===
+    updateC0(c0, planN, n1, n2, baseC0);
+
+    // === C1 ===
+    updateC1(c1, baseC1);
+
+    // === Главный вердикт (по приоритету) ===
+    updateVerdict(srm, c0, c1, planN, n1, n2);
+  }
+
+  function updateProgress(planN, n1, n2) {
+    if (n1 == null && n2 == null) {
+      setStatus('mon_progress_status', 'pending', 'нет данных');
+      $('mon_progress_n1').textContent = '—';
+      $('mon_progress_n2').textContent = '—';
+      $('mon_progress_pct1').textContent = '—';
+      $('mon_progress_pct2').textContent = '—';
+      $('mon_progress_bar1').style.width = '0';
+      $('mon_progress_bar2').style.width = '0';
+      $('mon_progress_hint').textContent = '';
+      return;
+    }
+    if (!(planN > 0)) {
+      setStatus('mon_progress_status', 'warn', 'нет плана');
+      $('mon_progress_hint').textContent = 'Введи плановое n на группу, чтобы видеть прогресс.';
+      return;
+    }
+    const pct1 = (n1 || 0) / planN;
+    const pct2 = (n2 || 0) / planN;
+    const pctMin = Math.min(pct1, pct2);
+
+    $('mon_progress_n1').textContent = n1 != null ? AB.fmtInt(n1) : '—';
+    $('mon_progress_n2').textContent = n2 != null ? AB.fmtInt(n2) : '—';
+    $('mon_progress_pct1').textContent = n1 != null ? AB.fmtPct(pct1, 1) + ' от плана' : '—';
+    $('mon_progress_pct2').textContent = n2 != null ? AB.fmtPct(pct2, 1) + ' от плана' : '—';
+    const bar1 = $('mon_progress_bar1'), bar2 = $('mon_progress_bar2');
+    bar1.style.width = Math.min(pct1, 1) * 100 + '%';
+    bar2.style.width = Math.min(pct2, 1) * 100 + '%';
+    bar1.classList.toggle('complete', pct1 >= 1);
+    bar2.classList.toggle('complete', pct2 >= 1);
+
+    if (pctMin >= 1) {
+      setStatus('mon_progress_status', 'ok', '100% набрано');
+      $('mon_progress_hint').textContent = 'Выборка набрана. Если по C1 ещё не прошёл лаг (триал + первый период) — подожди до полного сигнала.';
+    } else {
+      setStatus('mon_progress_status', 'pending', AB.fmtPct(pctMin, 0) + ' набрано');
+      const remaining = Math.max(planN - (n1 || 0), planN - (n2 || 0));
+      $('mon_progress_hint').textContent = `Осталось добрать ~${AB.fmtInt(remaining)} юзеров на группу. Раньше времени смотреть результаты — peeking, FPR раздут.`;
+    }
+  }
+
+  function updateSRM(srm) {
+    if (!srm) {
+      setStatus('mon_srm_status', 'pending', '—');
+      $('mon_srm_chi').textContent = '—';
+      $('mon_srm_p').textContent = '—';
+      $('mon_srm_split').textContent = '—';
+      $('mon_srm_hint').textContent = 'Введи набранные n в обеих группах, чтобы проверить корректность сплита.';
+      return;
+    }
+    const split = `${(srm.n1 / srm.total * 100).toFixed(2)}% / ${(srm.n2 / srm.total * 100).toFixed(2)}%`;
+    $('mon_srm_chi').textContent = AB.fmt(srm.chi, 3);
+    $('mon_srm_p').textContent = AB.fmtPval(srm.pVal);
+    $('mon_srm_split').textContent = split;
+
+    if (srm.pVal < 0.001) {
+      setStatus('mon_srm_status', 'warn', 'SRM');
+      $('mon_srm_hint').innerHTML = `<strong>Сплит-система отдала юзеров криво</strong> (p < 0.001 — индустриальный порог для SRM, не 0.05). Тест выкидывать, искать причину: бот-трафик, баг трекинга, проблема с куками.`;
+    } else if (srm.pVal < 0.05) {
+      setStatus('mon_srm_status', 'pending', 'на грани');
+      $('mon_srm_hint').textContent = `p = ${AB.fmtPval(srm.pVal)}. По стандартному порогу 0.05 это бы насторожило, но для SRM используется более строгий порог 0.001 — пока ок. Понаблюдай.`;
+    } else {
+      setStatus('mon_srm_status', 'ok', 'ок');
+      $('mon_srm_hint').textContent = `Распределение в пределах ожидаемого случайного шума.`;
+    }
+  }
+
+  function updateC0(c0, planN, n1, n2, baseC0) {
+    if (!c0) {
+      setStatus('mon_c0_status', 'pending', '—');
+      $('mon_c0_p1').textContent = '—';
+      $('mon_c0_p2').textContent = '—';
+      $('mon_c0_lift').textContent = '—';
+      $('mon_c0_p').textContent = '—';
+      $('mon_c0_hint').textContent = 'Введи число оплат C0 в обеих группах.';
+      return;
+    }
+    $('mon_c0_p1').textContent = AB.fmtPct(c0.p1, 3);
+    $('mon_c0_p2').textContent = AB.fmtPct(c0.p2, 3);
+    $('mon_c0_lift').textContent = (c0.lift >= 0 ? '+' : '') + AB.fmtPct(c0.lift, 1);
+    $('mon_c0_p').textContent = AB.fmtPval(c0.pVal);
+
+    const significant = c0.pVal < 0.05;
+    const enoughSample = planN > 0 && Math.min(n1, n2) >= planN;
+
+    if (!enoughSample) {
+      setStatus('mon_c0_status', 'pending', 'рано');
+      const pctMin = planN > 0 ? Math.min(n1, n2) / planN : 0;
+      $('mon_c0_hint').innerHTML = `Эффект пока в коридоре, ДИ для абс. разницы: [${AB.fmtPct(c0.ciAbsLow, 3)}, ${AB.fmtPct(c0.ciAbsHigh, 3)}]. <strong>Не делай выводов до конца теста</strong> — выборка набрана только на ${AB.fmtPct(pctMin, 0)}, peeking даёт ложные срабатывания.`;
+    } else if (significant) {
+      setStatus('mon_c0_status', 'ok', 'значимо');
+      $('mon_c0_hint').innerHTML = `<strong>Эффект значим</strong> (p = ${AB.fmtPval(c0.pVal)} < 0.05). ДИ для абс. разницы: [${AB.fmtPct(c0.ciAbsLow, 3)}, ${AB.fmtPct(c0.ciAbsHigh, 3)}].`;
+    } else {
+      setStatus('mon_c0_status', 'pending', 'не значимо');
+      $('mon_c0_hint').innerHTML = `Не значимо (p = ${AB.fmtPval(c0.pVal)} ≥ 0.05). Выборка набрана, но эффекта нет или он слишком мал. ДИ: [${AB.fmtPct(c0.ciAbsLow, 3)}, ${AB.fmtPct(c0.ciAbsHigh, 3)}] — смотри ширину, она показывает что мы реально знаем.`;
+    }
+  }
+
+  function updateC1(c1, baseC1) {
+    if (!c1) {
+      setStatus('mon_c1_status', 'pending', '—');
+      $('mon_c1_p1').textContent = '—';
+      $('mon_c1_p2').textContent = '—';
+      $('mon_c1_lift').textContent = '—';
+      $('mon_c1_p').textContent = '—';
+      $('mon_c1_hint').textContent = 'C1 опционально. Введи число продлений в обеих группах, если данные уже есть (помни про лаг — обычно 5–6 недель после старта).';
+      return;
+    }
+    $('mon_c1_p1').textContent = AB.fmtPct(c1.p1, 2);
+    $('mon_c1_p2').textContent = AB.fmtPct(c1.p2, 2);
+    $('mon_c1_lift').textContent = (c1.lift >= 0 ? '+' : '') + AB.fmtPct(c1.lift, 1);
+    $('mon_c1_p').textContent = AB.fmtPval(c1.pVal);
+
+    if (c1.pVal < 0.05) {
+      const direction = c1.lift < 0 ? 'просел' : 'вырос';
+      setStatus('mon_c1_status', c1.lift < 0 ? 'warn' : 'ok', c1.lift < 0 ? 'просадка' : 'рост');
+      $('mon_c1_hint').innerHTML = `<strong>C1 ${direction}</strong> на ${AB.fmtPct(Math.abs(c1.lift), 1)} rel (p = ${AB.fmtPval(c1.pVal)}). ${c1.lift < 0 ? 'Это плата за рост C0 — учти в финальном решении.' : ''}`;
+    } else {
+      setStatus('mon_c1_status', 'ok', 'без сдвига');
+      $('mon_c1_hint').innerHTML = `Сдвиг C1 не значим (p = ${AB.fmtPval(c1.pVal)}). ДИ для разницы: [${AB.fmtPct(c1.ciAbsLow, 2)}, ${AB.fmtPct(c1.ciAbsHigh, 2)}].`;
+    }
+  }
+
+  function updateVerdict(srm, c0, c1, planN, n1, n2) {
+    // Приоритет: SRM > нет данных > выборка не набрана > значимо/не значимо
+    if (srm && srm.pVal < 0.001) {
+      setVerdict(null, 'СТОП АВАРИЯ', 'SRM detected — сплит-система кривая, тест выкидывать. Все остальные расчёты ниже бессмысленны.', 'red');
+      return;
+    }
+    if (!srm) {
+      setVerdict(null, '—', 'Введи текущие цифры по эксперименту ниже.', 'gray');
+      return;
+    }
+    if (!(planN > 0)) {
+      setVerdict(null, 'НЕТ ПЛАНА', 'Введи плановое n на группу, чтобы понять, набралась ли выборка.', 'gray');
+      return;
+    }
+    const pctMin = Math.min(n1 || 0, n2 || 0) / planN;
+    if (pctMin < 1) {
+      const remaining = AB.fmtInt(planN - Math.min(n1 || 0, n2 || 0));
+      setVerdict(null, 'РАНО', `Выборка набрана на ${AB.fmtPct(pctMin, 0)}. До конца ещё ~${remaining} юзеров на меньшую группу. SRM ок, цифры ниже — для информации, но <strong>выводов не делай</strong>.`, 'yellow');
+      return;
+    }
+    // Выборка набрана
+    if (c0) {
+      if (c0.pVal < 0.05) {
+        const lift = (c0.lift >= 0 ? '+' : '') + AB.fmtPct(c0.lift, 1);
+        let c1Note = '';
+        if (c1) {
+          if (c1.pVal < 0.05 && c1.lift < 0) {
+            c1Note = ` <strong>Но C1 просел на ${AB.fmtPct(Math.abs(c1.lift), 1)}</strong> — посчитай, оправдан ли рост C0.`;
+          } else if (c1.pVal >= 0.05) {
+            c1Note = ' C1 без значимого сдвига — чисто.';
+          }
+        } else {
+          c1Note = ' Если ожидаешь эффект на C1 — дождись лага и заполни поля по C1.';
+        }
+        setVerdict(null, 'МОЖНО СМОТРЕТЬ', `Выборка набрана. C0: эффект ${lift} значим (p = ${AB.fmtPval(c0.pVal)}).${c1Note}`, 'green');
+      } else {
+        setVerdict(null, 'МОЖНО СМОТРЕТЬ', `Выборка набрана. C0: эффект не значим (p = ${AB.fmtPval(c0.pVal)} ≥ 0.05). Это не "эффекта нет" — смотри ширину ДИ.`, 'green');
+      }
+    } else {
+      setVerdict(null, 'МОЖНО СМОТРЕТЬ', 'Выборка набрана. Введи число оплат C0, чтобы увидеть результат.', 'green');
+    }
+  }
+
+  // Кнопка «↘ из размера выборки»: тянем плановое n, базовое C0, alpha из вкладки Sample Size
+  $('mon_pull_from_ss').addEventListener('click', () => {
+    const ssN = $('ss_out_per_group').textContent.replace(/\s|\u00A0/g, '');
+    if (/^\d+$/.test(ssN)) $('mon_plan_n').value = ssN;
+    const ssP1 = $('ss_p1').value;
+    if (ssP1) $('mon_base_c0').value = (parseFloat(ssP1) * 100).toFixed(2).replace(/\.?0+$/, '');
+    const ssAlpha = $('ss_alpha').value;
+    if (ssAlpha) $('mon_alpha').value = ssAlpha;
+    const ssC1 = $('ss_c1_base').value;
+    if (ssC1) $('mon_base_c1').value = ssC1;
+    compute();
+    // подсветим что подтянулось
+    $('mon_pull_from_ss').textContent = '✓ подтянуто';
+    setTimeout(() => { $('mon_pull_from_ss').textContent = '↘ из размера выборки'; }, 1400);
+  });
+
+  // Реактивность: пересчёт при любом изменении любого поля
+  ALL_FIELDS.forEach(id => {
+    const el = $(id);
+    if (el) el.addEventListener('input', compute);
+  });
+
+  // URL-state
+  AB.URLState.register('monitor', ALL_FIELDS.map(id => ({ id })), compute);
+  AB.URLState.read('monitor');
+  AB.URLState.bind('monitor');
+  compute();
+})();
+</script>
+
+</body>
+</html>
